@@ -1,6 +1,7 @@
 # diffusion.py
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 # Handy function
 def pause(message=''):
@@ -19,7 +20,7 @@ def euler_explicit(y,a,T,condition='dirichlet_zero'):
             print("Absorbing Dirichlet BCs need y[0]=y[-1]=0, y was changed accordingly.")
             y[0]=y[-1]=0
         for t in range(1,T):
-            u = y
+            u = copy.copy(y) # Inefficient, but need to not get shift of result
             for i in range(1,len(y)-1):
                 y[i] = u[i] + a * (u[i+1] - 2*u[i] + u[i-1])
     return y
@@ -29,7 +30,7 @@ def euler_explicit(y,a,T,condition='dirichlet_zero'):
 
 
 if __name__ == "__main__":
-    n_points  = 1000
+    n_points  = 500
     n_steps = 10
     a = 0.27
 
@@ -39,17 +40,14 @@ if __name__ == "__main__":
     y[round(len(y)/2)] = 1./n_points
     # for i in range(0,102):
     #     y[i]=i
-
-    plt.plot(x,y)
-
-
-    euler_explicit(y,a,n_steps,condition='dirichlet_zero')
     plt.plot(x,y)
 
     euler_explicit(y,a,n_steps,condition='dirichlet_zero')
     plt.plot(x,y)
-
+    euler_explicit(y,a,n_steps,condition='dirichlet_zero')
+    plt.plot(x,y)
     euler_explicit(y,a,n_steps*20,condition='dirichlet_zero')
     plt.plot(x,y)
+
     plt.show(block=False)
     pause('Showing function.')
