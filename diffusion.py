@@ -13,40 +13,35 @@ def pause(message=''):
 def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
     '''Euler scheme with Au(n+1)=Bu(n).'''
     if scheme=='explicit':
+        B = sparse.diags([a, 1-2*a, a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
         if Bcondition == 'dirichlet_zero':
             # Completely absorbing boundary conditions.
             A = sparse.eye(len(y-2),format='csc')
-            B = sparse.diags([a, 1-2*a, a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
         elif Bcondition == 'neumann_zero':
             A = sparse.eye(len(y),format='csc')
-            B = sparse.diags([a, 1-2*a, a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
             B[0,1]=B[-1,-2]=2*a
         else:
             print('Invalid boundary conditions.')
     elif scheme=='implicit':
+        A = sparse.diags([-a, 1+2*a, -a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
         if Bcondition == 'dirichlet_zero':
             # Completely absorbing boundary conditions.
-            A = sparse.diags([-a, 1+2*a, -a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
             B = sparse.eye(len(y-2),format='csc')
         elif Bcondition=='neumann_zero':
             # Completely reflecting boundary conditions.
-            A = sparse.diags([-a, 1+2*a, -a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
             A[0,1]=A[-1,-2]=-2*a
             B = sparse.eye(len(y),format='csc')
         else:
             print('Invalid boundary conditions.')
     elif scheme=='crank-nicolson':
-        if Bcondition == 'dirichlet_zero':
-            # Completely absorbing boundary conditions.
-            A = sparse.diags([-a/2, 1+a, -a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
-            B = sparse.diags([a/2, 1-a, a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
-        elif Bcondition=='neumann_zero':
+        A = sparse.diags([-a/2, 1+a, -a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
+        B = sparse.diags([a/2, 1-a, a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
+        # Note, if completely absorbing boundary conditions (dirichlet_zero), nothing more to do with A,B.
+        if Bcondition=='neumann_zero':
             # Completely reflecting boundary conditions.
-            A = sparse.diags([-a/2, 1+a, -a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
-            B = sparse.diags([a/2, 1-a, a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
             A[0,1]=A[-1,-2]=-a
             B[0,1]=B[-1,-2]=a
-        else:
+        elif not Bcondition=='dirichlet_zero':
             print('Invalid boundary conditions.')
     else:
         print('Invalid scheme.')
@@ -64,8 +59,8 @@ if __name__ == "__main__":
     n_steps = 100
     a = 0.27
 
-    Bcondition = 'dirichlet_zero'
-    # Bcondition = 'neumann_zero'
+    # Bcondition = 'dirichlet_zero'
+    Bcondition = 'neumann_zero'
     # scheme = 'explicit'
     # scheme = 'implicit'
     scheme = 'crank-nicolson'
