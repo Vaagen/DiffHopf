@@ -13,29 +13,29 @@ def pause(message=''):
 def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
     '''Euler scheme with Au(n+1)=Bu(n).'''
     if scheme=='explicit':
-        B = sparse.diags([a, 1-2*a, a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
+        B = sparse.diags([a, 1-2*a, a], [-1, 0, 1], shape=(len(y), len(y)), format='csr')
         if Bcondition == 'dirichlet_zero':
             # Completely absorbing boundary conditions.
-            A = sparse.eye(len(y-2),format='csc')
+            A = sparse.eye(len(y-2),format='csr')
         elif Bcondition == 'neumann_zero':
-            A = sparse.eye(len(y),format='csc')
+            A = sparse.eye(len(y),format='csr')
             B[0,1]=B[-1,-2]=2*a
         else:
             print('Invalid boundary conditions.')
     elif scheme=='implicit':
-        A = sparse.diags([-a, 1+2*a, -a], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
+        A = sparse.diags([-a, 1+2*a, -a], [-1, 0, 1], shape=(len(y), len(y)), format='csr')
         if Bcondition == 'dirichlet_zero':
             # Completely absorbing boundary conditions.
-            B = sparse.eye(len(y-2),format='csc')
+            B = sparse.eye(len(y-2),format='csr')
         elif Bcondition=='neumann_zero':
             # Completely reflecting boundary conditions.
             A[0,1]=A[-1,-2]=-2*a
-            B = sparse.eye(len(y),format='csc')
+            B = sparse.eye(len(y),format='csr')
         else:
             print('Invalid boundary conditions.')
     elif scheme=='crank-nicolson':
-        A = sparse.diags([-a/2, 1+a, -a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
-        B = sparse.diags([a/2, 1-a, a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csc')
+        A = sparse.diags([-a/2, 1+a, -a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csr')
+        B = sparse.diags([a/2, 1-a, a/2], [-1, 0, 1], shape=(len(y), len(y)), format='csr')
         # Note, if completely absorbing boundary conditions (dirichlet_zero), nothing more to do with A,B.
         if Bcondition=='neumann_zero':
             # Completely reflecting boundary conditions.
@@ -44,11 +44,16 @@ def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
         elif not Bcondition=='dirichlet_zero':
             print('Invalid boundary conditions.')
     else:
-        print('Invalid scheme.')
+        print('Invalid scheme: ', scheme)
 
-    Ainv = sparse.linalg.inv(A)
+    # Ainv = sparse.linalg.inv(A)
     for t in range(1,T):
-        y = Ainv.dot(B.dot(y))
+        # Ineffective
+        # y = Ainv.dot(B.dot(y))
+        # Not working
+        # y = scipy.linalg.solve_banded( (1,1) , A, B.dot(y), overwrite_b=False)
+        # Should be ok
+        y = scipy.sparse.linalg.spsolve(A,B.dot(y))
     return y
 
 
@@ -56,11 +61,11 @@ def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
 if __name__ == "__main__":
 
     n_points  = 100
-    n_steps = 100
-    a = 0.27
+    n_steps = 10
+    a = 2.5
 
-    # Bcondition = 'dirichlet_zero'
-    Bcondition = 'neumann_zero'
+    Bcondition = 'dirichlet_zero'
+    # Bcondition = 'neumann_zero'
     # scheme = 'explicit'
     # scheme = 'implicit'
     scheme = 'crank-nicolson'
@@ -69,9 +74,9 @@ if __name__ == "__main__":
     y = np.zeros([n_points + 2])
 
     y[round(len(y)/2)] = 1./n_points
-    for i in range(0,len(y)):
-        y[i]=i
-    plt.plot(x,y)
+    # for i in range(0,len(y)):
+    #     y[i]=i
+    # plt.plot(x,y)
 
     y = euler(y,a,n_steps,Bcondition=Bcondition,scheme=scheme)
     plt.plot(x,y)
