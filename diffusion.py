@@ -46,13 +46,7 @@ def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
     else:
         print('Invalid scheme: ', scheme)
 
-    # Ainv = sparse.linalg.inv(A)
     for t in range(1,T):
-        # Ineffective
-        # y = Ainv.dot(B.dot(y))
-        # Not working
-        # y = scipy.linalg.solve_banded( (1,1) , A, B.dot(y), overwrite_b=False)
-        # Should be ok
         y = scipy.sparse.linalg.spsolve(A,B.dot(y))
     return y
 
