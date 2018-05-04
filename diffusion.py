@@ -52,7 +52,7 @@ def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
 
 def advection_LaxW(y,a,T):
     b = 2.*a**2.
-    B = sparse.diags([a+b, 1-2*b, -a+b], [-1,0,1], shape=(len(y-2), len(y-2)), format='csr')
+    B = sparse.diags([a+b, 1-2*b, -a+b], [-1,0,1], shape=(len(y), len(y)), format='csr')
     for t in range(1,T):
         y = B.dot(y)
     return y
@@ -68,10 +68,10 @@ if __name__ == "__main__":
     delta_x = c*delta_t/(2*a)
     x_steps = 1/delta_x
 
-    x = np.linspace(0,1,x_steps+2)
-    y = np.zeros([x_steps + 2])
+    x = np.linspace(0,1,x_steps)
+    y = np.zeros([x_steps])
 
-    for i in range(1,len(y)-1):
+    for i in range(1,len(y)):
         y[i] = max( 1- (4.*(x[i]-0.5) )**2. , 0)
 
     plt.plot(x,y)
