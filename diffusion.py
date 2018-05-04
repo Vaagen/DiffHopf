@@ -50,34 +50,61 @@ def euler(y,a,T,Bcondition='dirichlet_zero',scheme='implicit'):
         y = scipy.sparse.linalg.spsolve(A,B.dot(y))
     return y
 
-
+def advection_LaxW(y,a,T):
+    b = 2.*a**2.
+    B = sparse.diags([a+b, 1-2*b, -a+b], [-1,0,1], shape=(len(y-2), len(y-2)), format='csr')
+    for t in range(1,T):
+        y = B.dot(y)
+    return y
 
 if __name__ == "__main__":
 
-    n_points  = 100
+    # Testing advection and Hopf equations
+    c = 1
+    delta_t = 0.01
     n_steps = 10
-    a = 2.5
+    CLF = 0.8
+    a = CLF/2.
+    delta_x = c*delta_t/(2*a)
+    x_steps = 1/delta_x
 
-    Bcondition = 'dirichlet_zero'
-    # Bcondition = 'neumann_zero'
-    # scheme = 'explicit'
-    # scheme = 'implicit'
-    scheme = 'crank-nicolson'
+    x = np.linspace(0,1,x_steps+2)
+    y = np.zeros([x_steps + 2])
 
-    x = np.linspace(0,1,n_points+2)
-    y = np.zeros([n_points + 2])
+    for i in range(1,len(y)-1):
+        y[i] = max( 1- (4.*(x[i]-0.5) )**2. , 0)
 
-    y[round(len(y)/2)] = 1./n_points
-    # for i in range(0,len(y)):
-    #     y[i]=i
+    plt.plot(x,y)
+    y = advection_LaxW(y,a,n_steps)
+    plt.plot(x,y)
+    y = advection_LaxW(y,a,n_steps)
+    plt.plot(x,y)
+
+    # Testing Euler scheme
+    # n_points  = 100
+    # n_steps = 10
+    # a = 2.5
+    #
+    # Bcondition = 'dirichlet_zero'
+    # # Bcondition = 'neumann_zero'
+    # # scheme = 'explicit'
+    # # scheme = 'implicit'
+    # scheme = 'crank-nicolson'
+    #
+    # x = np.linspace(0,1,n_points+2)
+    # y = np.zeros([n_points + 2])
+    #
+    # y[round(len(y)/2)] = 1./n_points
+    # # for i in range(0,len(y)):
+    # #     y[i]=i
+    # # plt.plot(x,y)
+    #
+    # y = euler(y,a,n_steps,Bcondition=Bcondition,scheme=scheme)
     # plt.plot(x,y)
-
-    y = euler(y,a,n_steps,Bcondition=Bcondition,scheme=scheme)
-    plt.plot(x,y)
-    y = euler(y,a,n_steps,Bcondition=Bcondition,scheme=scheme)
-    plt.plot(x,y)
-    y = euler(y,a,n_steps*10,Bcondition=Bcondition,scheme=scheme)
-    plt.plot(x,y)
+    # y = euler(y,a,n_steps,Bcondition=Bcondition,scheme=scheme)
+    # plt.plot(x,y)
+    # y = euler(y,a,n_steps*10,Bcondition=Bcondition,scheme=scheme)
+    # plt.plot(x,y)
 
     plt.show(block=False)
     pause('Showing function.')
