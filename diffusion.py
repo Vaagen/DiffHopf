@@ -5,6 +5,8 @@ import scipy
 from scipy import linalg, sparse
 from scipy.sparse import linalg
 
+import laxhopf
+
 # Handy function
 def pause(message=''):
     print(message)
@@ -57,6 +59,14 @@ def advection_LaxW(y,a,T):
         y = B.dot(y)
     return y
 
+def hopf_LaxW (y,a,T):
+    b = 2.*a**2.
+    B = sparse.diags([a+b, 1-2*b, -a+b], [-1,0,1], shape=(len(y), len(y)), format='csr')
+    for t in range(1,T):
+        y = B.dot(y)
+    return y
+
+
 if __name__ == "__main__":
 
     # Testing advection and Hopf equations
@@ -74,10 +84,19 @@ if __name__ == "__main__":
     for i in range(1,len(y)):
         y[i] = max( 1- (4.*(x[i]-0.5) )**2. , 0)
 
+    # Testing Advection
+    # plt.plot(x,y)
+    # y = advection_LaxW(y,a,n_steps)
+    # plt.plot(x,y)
+    # y = advection_LaxW(y,a,n_steps)
+    # plt.plot(x,y)
+
+    # Testing Hopf
+    y = y.tolist()
     plt.plot(x,y)
-    y = advection_LaxW(y,a,n_steps)
+    y = laxhopf.lax_hopf(y,a,n_steps)
     plt.plot(x,y)
-    y = advection_LaxW(y,a,n_steps)
+    y = laxhopf.lax_hopf(y,a,n_steps)
     plt.plot(x,y)
 
     # Testing Euler scheme
